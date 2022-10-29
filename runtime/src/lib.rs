@@ -7,18 +7,29 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use pallet_grandpa::{
-	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
+	fg_primitives,
+	AuthorityId as GrandpaId,
+	AuthorityList as GrandpaAuthorityList,
 };
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{ crypto::KeyTypeId, OpaqueMetadata };
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	create_runtime_str,
+	generic,
+	impl_opaque_keys,
 	traits::{
-		AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, Verify,
+		AccountIdLookup,
+		BlakeTwo256,
+		Block as BlockT,
+		IdentifyAccount,
+		NumberFor,
+		One,
+		Verify,
 	},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature,
+	transaction_validity::{ TransactionSource, TransactionValidity },
+	ApplyExtrinsicResult,
+	MultiSignature,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -27,23 +38,31 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 pub use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime,
+	parameter_types,
 	traits::{
-		ConstU128, ConstU32, ConstU64, ConstU8, KeyOwnerProofSystem, Randomness, StorageInfo,
+		ConstU128,
+		ConstU32,
+		ConstU64,
+		ConstU8,
+		KeyOwnerProofSystem,
+		Randomness,
+		StorageInfo,
 	},
 	weights::{
-		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
-		IdentityFee, Weight,
+		constants::{ BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND },
+		IdentityFee,
+		Weight,
 	},
 	StorageValue,
 };
 pub use frame_system::Call as SystemCall;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
-use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
+use pallet_transaction_payment::{ ConstFeeMultiplier, CurrencyAdapter, Multiplier };
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Perbill, Permill};
+pub use sp_runtime::{ Perbill, Permill };
 
 /// Import the template pallet.
 pub use pallet_template;
@@ -213,13 +232,13 @@ impl pallet_grandpa::Config for Runtime {
 
 	type KeyOwnerProofSystem = ();
 
-	type KeyOwnerProof =
-		<Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+	type KeyOwnerProof = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<
+		(KeyTypeId, GrandpaId)
+	>>::Proof;
 
-	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
-		KeyTypeId,
-		GrandpaId,
-	)>>::IdentificationTuple;
+	type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<
+		(KeyTypeId, GrandpaId)
+	>>::IdentificationTuple;
 
 	type HandleEquivocation = ();
 
@@ -274,6 +293,12 @@ impl pallet_sudo::Config for Runtime {
 impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
+impl pallet_simple_pallet::Config for Runtime {
+	type Event = Event; //我们上面的定义中只有一个关联类型Event，
+	//在此处进行指定，等号右边的Event实际上是
+	//frame system中的Event，此处不需要深究，
+	//可以理解为在runtime中已经定义好的一种具体的类型。
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -293,6 +318,7 @@ construct_runtime!(
 		Sudo: pallet_sudo,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
+		SimplePallet: pallet_simple_pallet, 
 	}
 );
 
@@ -315,8 +341,12 @@ pub type SignedExtra = (
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
-pub type UncheckedExtrinsic =
-	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<
+	Address,
+	RuntimeCall,
+	Signature,
+	SignedExtra
+>;
 /// The payload being signed in transactions.
 pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
@@ -325,7 +355,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllPalletsWithSystem,
+	AllPalletsWithSystem
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
