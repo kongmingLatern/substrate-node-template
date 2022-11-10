@@ -1,5 +1,5 @@
 [package]
-name = "pallet-simple-pallet"
+name = "pallet-use-hooks"
 version = "4.0.0-dev"
 description = "KongmingLatern"
 authors = ["Substrate DevHub <https://github.com/substrate-developer-hub>"]

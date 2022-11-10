@@ -50,6 +50,7 @@ frame-system-benchmarking = { version = "4.0.0-dev", default-features = false, g
 # Local Dependencies
 pallet-template = { version = "4.0.0-dev", default-features = false, path = "../pallets/template" }
 pallet-simple-pallet = { version = "4.0.0-dev", default-features = false, path = "../pallets/simple-pallet" } #我们上面编写的pallet
+pallet-use-hooks = { version = "4.0.0-dev", default-features = false, path = "../pallets/pallet-use-hooks" } #我们上面编写的pallet
 
 [build-dependencies]
 substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.30" }
@@ -89,6 +90,7 @@ std = [
 	"sp-version/std",
 	"pallet-template/std",
   "pallet-simple-pallet/std", #我们上面编写的pallet
+  "pallet-use-hooks/std", #我们上面编写的pallet
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
