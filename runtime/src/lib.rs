@@ -294,7 +294,7 @@ impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 impl pallet_simple_pallet::Config for Runtime {
-	type Event = Event; //我们上面的定义中只有一个关联类型Event，
+	type RuntimeEvent = RuntimeEvent; //我们上面的定义中只有一个关联类型Event，
 	//在此处进行指定，等号右边的Event实际上是
 	//frame system中的Event，此处不需要深究，
 	//可以理解为在runtime中已经定义好的一种具体的类型。
@@ -511,7 +511,7 @@ impl_runtime_apis! {
 			call: RuntimeCall,
 			len: u32,
 		) -> pallet_transaction_payment::RuntimeDispatchInfo<Balance> {
-			TransactionPayment::query_call_info(call, len)
+			TransactionPayment::query_call_info()
 		}
 		fn query_call_fee_details(
 			call: RuntimeCall,

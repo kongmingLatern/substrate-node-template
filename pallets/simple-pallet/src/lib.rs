@@ -1,68 +1,81 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+
 pub use pallet::*;
+
 #[frame_support::pallet]
 pub mod pallet {
-    use frame_support::pallet_prelude::*;
-    use frame_system::pallet_prelude::*;
+	use frame_support::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
 
-    // 2. Declaration of the Pallet type
-    // This is a placeholder to implement traits and methods.
-    #[pallet::pallet]
-    #[pallet::generate_store(pub(super) trait Store)]
-    pub struct Pallet<T>(_);
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
 
-    // 3. Runtime Configuration Trait
-    // All types and constants go here.
-    // Use #[pallet::constant] and #[pallet::extra_constants]
-    // to pass in values to metadata.
+	#[pallet::config]
+	pub trait Config: frame_system::Config {
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+	}
 
-    #[pallet::config]
-  	pub trait Config: frame_system::Config {
-        type Event: From<Event<Self>> 
-        + IsType<<Self as frame_system::Config>::Event>;
-    }
+	#[pallet::storage]
+	#[pallet::getter(fn something)]
+	pub(super) type Claims<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		T::Hash,
+		(T::AccountId, T::BlockNumber)
+	>;
 
-    // 4. Runtime Storage
-    // Use to declare storage items.
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event<T: Config> {
+		ClaimCreated {
+			who: T::AccountId,
+			claim: T::Hash,
+		},
+		ClaimRevoked {
+			who: T::AccountId,
+			claim: T::Hash,
+		},
+	}
 
-    #[pallet::storage]
-    pub type Proofs<T: Config> =
-        StorageMap<_, Blake2_128Concat, u32, u128>;
-    #[pallet::getter(fn something)]
-    pub MyStorage<T: Config> = StorageValue<_, u32>;
+	#[pallet::error]
+	pub enum Error<T> {
+		AlreadyClaimed,
+		NoSuchClaim,
+		NotClaimOwner,
+	}
 
-    // 5. Runtime Events
-    // Can stringify event types to metadata.
-   #[pallet::event]
-    #[pallet::generate_deposit(pub(super) fn deposit_event)]
-    pub enum Event<T: Config> {
-        ClaimCreated(u32, u128),
-    }
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {
+		#[pallet::weight(0)]
+		pub fn create_claims(origin: OriginFor<T>, claim: T::Hash) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
 
-    // 6. Hooks
-    // Define some logic that should be executed
-    // regularly in some context, for e.g. on_initialize.
-    #[pallet::hooks]
-    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {  }
+			ensure!(!Claims::<T>::contains_key(&claim), Error::<T>::AlreadyClaimed);
 
-    // 7. Extrinsics
-    // Functions that are callable from outside the runtime.
+			let current_block = <frame_system::Pallet<T>>::block_number();
+			Claims::<T>::insert(&claim, (&sender, current_block));
 
- #[pallet::call]
-    impl<T:Config> Pallet<T> { 
-        #[pallet::weight(0)]
-        pub fn create_claim(origin: OriginFor<T>, 
-          id: u32, 
-          claim: u128) -> DispatchResultWithPostInfo {
-            ensure_signed(origin)?;
-            Proofs::<T>::insert(
-                &id,
-                &claim,
-            );
+			Self::deposit_event(Event::ClaimCreated {
+				who: sender,
+				claim,
+			});
+			Ok(())
+		}
 
-            Self::deposit_event(Event::ClaimCreated(id, claim));
-            Ok(().into())
-        }
-    }
+		#[pallet::weight(0)]
+		pub fn revoke_claims(origin: OriginFor<T>, claim: T::Hash) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
 
+			let (owner, _) = Claims::<T>::get(&claim).ok_or(Error::<T>::NoSuchClaim)?;
+
+			ensure!(sender == owner, Error::<T>::NotClaimOwner);
+
+			Claims::<T>::remove(&claim);
+
+			Self::deposit_event(Event::ClaimRevoked { who: sender, claim });
+
+			Ok(())
+		}
+	}
 }
